@@ -1,6 +1,14 @@
 import pandas as pd
 import os
 
+def mean_encode(df, cols, target_col='target'):
+    for col in cols:
+        gr = df.groupby(col)[target_col].mean()
+        gr.name = gr.name + '_mean_enc'
+        df = df.merge(gr.reset_index(), how='left', right_on=col, left_on=col)
+        df.drop(col, axis=1, inplace=True)
+    return df
+
 def fe(df):
     #     col_nulls_sum = df.isnull().sum()
     #     null_cols = col_nulls_sum[col_nulls_sum>0].index.values
@@ -61,6 +69,7 @@ def fe(df):
 def main():
     dtypes = {'target': 'bool', 'block_flag': 'bool'}
     train = pd.read_csv(os.path.join('..', 'input', 'train_music.csv'), dtype=dtypes)
+    train = mean_encode(train, ['device_type', 'manufacturer_category', 'os_category'])
     # train = fe(train)
     train.to_hdf('train.hdf', 'train')
 
